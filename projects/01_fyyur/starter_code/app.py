@@ -8,18 +8,21 @@ import babel
 from flask import Flask, render_template, request, Response, flash, redirect, url_for
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 import logging
 from logging import Formatter, FileHandler
 from flask_wtf import Form
 from forms import *
+
 #----------------------------------------------------------------------------#
 # App Config.
 #----------------------------------------------------------------------------#
 
 app = Flask(__name__)
-moment = Moment(app)
 app.config.from_object('config')
+moment = Moment(app)
 db = SQLAlchemy(app)
+mig = Migrate(app, db)
 
 # TODO: connect to a local postgresql database
 
@@ -27,35 +30,61 @@ db = SQLAlchemy(app)
 # Models.
 #----------------------------------------------------------------------------#
 
-class Venue(db.Model):
-    __tablename__ = 'Venue'
+venue_genre = db.Table(
+    'venue_genre',
+    db.Column('venue_id', db.Integer, db.ForeignKey('venues.id'), primary_key=True),
+    db.Column('genre_id', db.Integer, db.ForeignKey('genres.id'), primary_key=True),
+)
 
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String)
+artist_genre = db.Table(
+    'artist_genre',
+    db.Column('artist_id', db.Integer, db.ForeignKey('artists.id'), primary_key=True),
+    db.Column('genre_id', db.Integer, db.ForeignKey('genres.id'), primary_key=True),
+)
+
+
+class Venue(db.Model):
+    __tablename__ = 'venues'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column(db.String(), nullable=False)
     city = db.Column(db.String(120))
-    state = db.Column(db.String(120))
+    state = db.Column(db.String(10))
     address = db.Column(db.String(120))
-    phone = db.Column(db.String(120))
+    phone = db.Column(db.String(30))
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
+    genres = db.relationship('Genre', secondary=venue_genre, backref='venues', cascade=['all'], lazy=True)
+    shows = db.relationship('Show', backref='venues', cascade=['all'], lazy=True)
 
-    # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
 class Artist(db.Model):
-    __tablename__ = 'Artist'
+  __tablename__ = 'artists'
 
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String)
-    city = db.Column(db.String(120))
-    state = db.Column(db.String(120))
-    phone = db.Column(db.String(120))
-    genres = db.Column(db.String(120))
-    image_link = db.Column(db.String(500))
-    facebook_link = db.Column(db.String(120))
+  id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+  name = db.Column(db.String(), nullable=False)
+  city = db.Column(db.String(120))
+  state = db.Column(db.String(10))
+  phone = db.Column(db.String(30))
+  image_link = db.Column(db.String(500))
+  facebook_link = db.Column(db.String(120))
+  genres = db.relationship('Genre', secondary=artist_genre, backref='artists', cascade=['all'], lazy=True)
+  shows = db.relationship('Show', backref='artists', cascade=['all'], lazy=True)
 
-    # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
-# TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
+class Genre(db.Model):
+    __tablename__ = 'genres'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    description = db.Column(db.String(100))
+    # venues = db.relationship('Venue', secondary=venue_genre, backref='genres', cascade=['all'], lazy=True)
+    # FIXME: Is this necessary?
+
+
+class Show(db.Model):
+    venue_id = db.Column(db.Integer, db.ForeignKey('venues.id'), primary_key=True)
+    artist_id = db.Column(db.Integer, db.ForeignKey('artists.id'), primary_key=True)
+    starttime = db.Column(db.DateTime, nullable=False)
+
 
 #----------------------------------------------------------------------------#
 # Filters.
@@ -512,7 +541,7 @@ if not app.debug:
 
 # Default port:
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=DEBUG)
 
 # Or specify port manually:
 '''
