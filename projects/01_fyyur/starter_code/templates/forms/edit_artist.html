@@ -3,6 +3,8 @@
 {% block content %}
   <div class="form-wrapper">
     <form class="form" method="post" action="/artists/{{artist.id}}/edit">
+        {{ form.csrf_token() }}
+
       <h3 class="form-heading">Edit artist <em>{{ artist.name }}</em></h3>
       <div class="form-group">
         <label for="name">Name</label>
@@ -19,20 +21,49 @@
             </div>
           </div>
       </div>
-      <div class="form-group">
+            <div class="form-group">
           <label for="phone">Phone</label>
           {{ form.phone(class_ = 'form-control', placeholder='xxx-xxx-xxxx', autofocus = true) }}
-        </div>
+      </div>
+      <div class="form-group">
+          <label for="image_link">Image Link</label>
+          {{ form.image_link(class_ = 'form-control', placeholder='http://', autofocus = true) }}
+      </div>
       <div class="form-group">
         <label for="genres">Genres</label>
         <small>Ctrl+Click to select multiple</small>
-        {{ form.genres(class_ = 'form-control', placeholder='Genres, separated by commas', id=form.state, autofocus = true) }}
+        {{ form.genres(class_ = 'form-control', placeholder='Genres, separated by commas', autofocus = true) }}
+      </div>
+
+
+      <div class="form-group">
+          <label for="facebook_link">Facebook Link</label>
+          {{ form.facebook_link(class_ = 'form-control', placeholder='http://', autofocus = true) }}
       </div>
       <div class="form-group">
-          <label for="genres">Facebook Link</label>
-          {{ form.facebook_link(class_ = 'form-control', placeholder='http://', id=form.state, autofocus = true) }}
-        </div>
+          <label for="website">Website</label>
+          {{ form.website(class_ = 'form-control', placeholder='http://', autofocus = true) }}
+      </div>
+      <div class="form-group">
+          <label for="seeking_venue">Are you currently seeking venues?</label>
+          {{ form.seeking_venue(class_ = 'form-control', autofocus = true) }}
+      </div>
+
+      <div class="form-group">
+          <label for="seeking_description">If so, input your description.</label>
+          {{ form.seeking_description(class_ = 'form-control', placeholder='I am seeking for venues that...', autofocus = true) }}
+      </div>
+
       <input type="submit" value="Edit Artist" class="btn btn-primary btn-lg btn-block">
     </form>
   </div>
+
+<script>
+    const genres = document.getElementById('genres');
+    let list = {{ artist.genres }};
+    for(let child=genres.firstChild; child!==null; child=child.nextSibling) {
+        if (list.includes(parseInt(child.value)))
+            child.selected = "selected";
+    }
+</script>
 {% endblock %}

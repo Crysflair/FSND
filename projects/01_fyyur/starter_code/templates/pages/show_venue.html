@@ -1,6 +1,7 @@
 {% extends 'layouts/main.html' %}
 {% block title %}Venue Search{% endblock %}
 {% block content %}
+
 <div class="row">
 	<div class="col-sm-6">
 		<h1 class="monospace">
@@ -8,6 +9,8 @@
 		</h1>
 		<p class="subtitle">
 			ID: {{ venue.id }}
+			<a href="{{ url_for('edit_venue', venue_id=venue.id) }}">[edit]</a>
+			<a href="{{ url_for('index') }}" onclick="delete_venue({{ venue.id }})">[delete]<a/>
 		</p>
 		<div class="genres">
 			{% for genre in venue.genres %}
@@ -74,6 +77,18 @@
 		{% endfor %}
 	</div>
 </section>
+
+
+<script>
+
+
+function delete_venue(id) {
+		fetch("/venues/"+id,{
+                method: 'DELETE',
+				redirect: 'follow'	// This makes no difference.
+		})
+	}
+</script>
 
 {% endblock %}
 
