@@ -511,7 +511,7 @@ def edit_venue_submission(venue_id):
             vn.facebook_link = f["facebook_link"]
             g_ids = [int(i) for i in f.getlist('genres')]
             vn.website = f['website']
-            vn.seeking_talent = bool(f["seeking_talent"])
+            vn.seeking_talent = "seeking_talent" in f
             vn.seeking_description = f["seeking_description"]
             vn.genres = db.session.query(Genre).filter(Genre.id.in_(g_ids)).all()
             db.session.commit()
@@ -524,7 +524,7 @@ def edit_venue_submission(venue_id):
     if success:
         flash('Venue ' + request.form['name'] + ' was successfully updated!')
     else:
-        flash('An error occurred. Venue' + request.form['name'] + ' could not be updated.'+error_msg)
+        flash('An error occurred. Venue ' + request.form['name'] + ' could not be updated.'+error_msg)
 
     return redirect(url_for('show_venue', venue_id=venue_id))
 
