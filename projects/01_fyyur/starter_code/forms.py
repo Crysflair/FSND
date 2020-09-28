@@ -2,26 +2,11 @@ from datetime import datetime
 from flask_wtf import FlaskForm
 from wtforms import StringField, SelectField, SelectMultipleField, DateTimeField, BooleanField, TextAreaField
 from wtforms.validators import DataRequired, AnyOf, URL, Regexp, ValidationError, Optional
+from models import Genre
 
 
+# Constants
 
-class ShowForm(FlaskForm):
-    artist_id = StringField(
-        'artist_id'
-    )
-    venue_id = StringField(
-        'venue_id'
-    )
-    start_time = DateTimeField(
-        'start_time',
-        validators=[DataRequired()],
-        default=datetime.today()
-    )
-
-
-from app import Genre
-
-genre_name = {g.id: g.description for g in Genre.query.order_by('id').all()}
 state_choices = [
     ('AL', 'AL'),
     ('AK', 'AK'),
@@ -75,7 +60,25 @@ state_choices = [
     ('WI', 'WI'),
     ('WY', 'WY'),
 ]
+genre_name = {g.id: g.description for g in Genre.query.order_by('id').all()}
 genre_choice = [(i, genre_name[i]) for i in genre_name.keys()]
+
+
+# Define Forms
+
+
+class ShowForm(FlaskForm):
+    artist_id = StringField(
+        'artist_id'
+    )
+    venue_id = StringField(
+        'venue_id'
+    )
+    start_time = DateTimeField(
+        'start_time',
+        validators=[DataRequired()],
+        default=datetime.today()
+    )
 
 
 class VenueForm(FlaskForm):
