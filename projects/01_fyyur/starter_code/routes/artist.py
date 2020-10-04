@@ -1,11 +1,10 @@
 
 from flask import render_template, request, flash, make_response, jsonify, redirect, url_for
-from models import db, Artist, Genre
+from models import Artist, Genre
+from shared import db, genre_name
 from forms import ArtistForm
 from . import divide_shows, num_upcoming_shows, rt
 
-
-genre_name = {g.id: g.description for g in Genre.query.order_by('id').all()}
 
 
 # Works well!
@@ -166,7 +165,7 @@ def edit_artist_submission(artist_id):
     else:
         flash('An error occurred. Artist' + request.form['name'] + ' could not be updated.' + error_msg)
 
-    return redirect(url_for('show_artist', artist_id=artist_id))
+    return redirect(url_for('rt.show_artist', artist_id=artist_id))
 
 # Works Well!
 @rt.route('/artists/create', methods=['GET'])

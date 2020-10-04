@@ -1,10 +1,8 @@
-from flask import render_template, request, flash, redirect, url_for
-from models import db, Venue, Genre
+from flask import render_template, request, flash, redirect, url_for, Blueprint
+from models import Venue, Genre
 from forms import VenueForm
+from shared import db, genre_name
 from . import num_upcoming_shows, divide_shows, rt
-
-
-genre_name = {g.id: g.description for g in Genre.query.order_by('id').all()}
 
 
 @rt.route('/venues')
@@ -214,4 +212,4 @@ def edit_venue_submission(venue_id):
     else:
         flash('An error occurred. Venue ' + request.form['name'] + ' could not be updated.'+error_msg)
 
-    return redirect(url_for('show_venue', venue_id=venue_id))
+    return redirect(url_for('rt.show_venue', venue_id=venue_id))

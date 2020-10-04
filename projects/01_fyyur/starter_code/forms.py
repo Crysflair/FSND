@@ -2,7 +2,7 @@ from datetime import datetime
 from flask_wtf import FlaskForm
 from wtforms import StringField, SelectField, SelectMultipleField, DateTimeField, BooleanField, TextAreaField
 from wtforms.validators import DataRequired, AnyOf, URL, Regexp, ValidationError, Optional
-from models import Genre
+from shared import genre_name, genre_choice
 
 
 # Constants
@@ -60,9 +60,6 @@ state_choices = [
     ('WI', 'WI'),
     ('WY', 'WY'),
 ]
-genre_name = {g.id: g.description for g in Genre.query.order_by('id').all()}
-genre_choice = [(i, genre_name[i]) for i in genre_name.keys()]
-
 
 # Define Forms
 

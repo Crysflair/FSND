@@ -5,30 +5,24 @@
 import json
 import dateutil.parser
 import babel
-from flask import Flask
+from flask import Flask, render_template
 from flask_moment import Moment
-from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 import logging
 from logging import Formatter, FileHandler
-from routes import rt
+import shared
+
 
 
 # ----------------------------------------------------------------------------#
 # App Config.
 # ----------------------------------------------------------------------------#
 
+
 app = Flask(__name__)
 app.config.from_object('config')
-moment = Moment(app)
-db = SQLAlchemy(app)
-mig = Migrate(app, db)
-app.register_blueprint(rt)
+shared.create_SQLAlchemy(app)
 
-
-# ----------------------------------------------------------------------------#
-# Define Filters.
-# ----------------------------------------------------------------------------#
 
 def format_datetime(value, format='medium'):
     date = dateutil.parser.parse(value)
@@ -39,6 +33,7 @@ def format_datetime(value, format='medium'):
     else:
         f = 'short'
     return babel.dates.format_datetime(date, format=f, locale='en_US')
+
 
 app.jinja_env.filters['datetime'] = format_datetime
 
@@ -52,6 +47,14 @@ if not app.debug:
     file_handler.setLevel(logging.INFO)
     app.logger.addHandler(file_handler)
     app.logger.info('errors')
+
+
+moment = Moment(app)
+mig = Migrate(app, shared.db)
+shared.init_genre()
+
+from routes import *
+app.register_blueprint(rt)
 
 
 if __name__ == '__main__':

@@ -8,8 +8,8 @@
 		</h1>
 		<p class="subtitle">
 			ID: {{ artist.id }}
-			<a href="{{ url_for('edit_artist', artist_id=artist.id) }}">[edit]</a>
-			<a href="{{ url_for('index') }}" onclick="delete_artist({{ artist.id }})">[delete]<a/>
+			<a href="{{ url_for('rt.edit_artist', artist_id=artist.id) }}">[edit]</a>
+			<a href="{{ url_for('rt.index') }}" onclick="delete_artist({{ artist.id }})">[delete]<a/>
 		</p>
 		<div class="genres">
 			{% for genre in artist.genres %}

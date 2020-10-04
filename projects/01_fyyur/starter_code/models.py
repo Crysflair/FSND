@@ -1,4 +1,4 @@
-from app import db
+from shared import db
 
 
 venue_genre = db.Table(

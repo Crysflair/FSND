@@ -19,6 +19,7 @@ def shows():
     } for sh in Show.query.all()]
     return render_template('pages/shows.html', shows=data)
 
+
 # Works Well!
 @rt.route('/shows/create')
 def create_shows():
