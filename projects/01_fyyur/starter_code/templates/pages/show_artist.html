@@ -9,7 +9,7 @@
 		<p class="subtitle">
 			ID: {{ artist.id }}
 			<a href="{{ url_for('rt.edit_artist', artist_id=artist.id) }}">[edit]</a>
-			<a href="{{ url_for('rt.index') }}" onclick="delete_artist({{ artist.id }})">[delete]<a/>
+			<a onclick="delete_artist({{ artist.id }})">[delete]<a/>
 		</p>
 		<div class="genres">
 			{% for genre in artist.genres %}
@@ -79,7 +79,14 @@ function delete_artist(id) {
 		fetch("/artists/"+id,{
                 method: 'DELETE',
 				redirect: 'follow'	// This makes no difference.
-		})
+		}).then(response => {
+			if (response.redirected) {
+				window.location.href = response.url;
+			}
+    	})
+		.catch(function(err) {
+			console.info(err + " url: " + url);
+		});
 	}
 </script>
 

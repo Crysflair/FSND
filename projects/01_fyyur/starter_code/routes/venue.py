@@ -133,7 +133,7 @@ def delete_venue(venue_id):
     finally:
         db.session.close()
 
-    return render_template('pages/home.html')
+    return redirect('/venues')
 
 
 # Works Well
