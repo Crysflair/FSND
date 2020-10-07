@@ -8,7 +8,7 @@ from wtforms import (
     TextAreaField
 )
 from wtforms.validators import DataRequired, AnyOf, URL, Regexp, ValidationError, Optional
-from shared import genre_name, genre_choice
+from shared import genre_choice
 
 
 # Constants

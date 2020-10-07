@@ -4,8 +4,10 @@ import sys
 from flask import render_template, request, flash, redirect, url_for
 from models import Venue, Genre, Show, Artist
 from forms import VenueForm
-from shared import db, genre_name
-from . import num_upcoming_shows, divide_shows, rt
+from shared import db
+from . import num_upcoming_shows, rt
+from sqlalchemy.exc import SQLAlchemyError
+
 
 
 @rt.route('/venues')
@@ -84,60 +86,52 @@ def create_venue_form():
 # works well!
 @rt.route('/venues/create', methods=['POST'])
 def create_venue_submission():
-    success = True
     error_msg = ''
     try:
         f = request.form
         vf = VenueForm(f)
         if not vf.validate():
-            success = False
             for key,val in vf.errors.items():
                 error_msg += key + ": " + ';'.join(val) + "\n"
-        else:
-            g_ids = [int(i) for i in f.getlist('genres')]
-            vn = Venue(name=f['name'], city=f['city'], state=f['state'], address=f['address'],
-                       phone=f['phone'], facebook_link=f['facebook_link'],
-                       genres=db.session.query(Genre).filter(Genre.id.in_(g_ids)).all(),
-                       image_link=f['image_link'], website=f['website'],
-                       seeking_talent=('seeking_talent' in f), seeking_description=f['seeking_description'],
-                       )
-            db.session.add(vn)
-            db.session.commit()
-    except:
+        assert vf.validate()
+        g_ids = [int(i) for i in f.getlist('genres')]
+        vn = Venue(name=f['name'], city=f['city'], state=f['state'], address=f['address'],
+                   phone=f['phone'], facebook_link=f['facebook_link'],
+                   genres=db.session.query(Genre).filter(Genre.id.in_(g_ids)).all(),
+                   image_link=f['image_link'], website=f['website'],
+                   seeking_talent=('seeking_talent' in f), seeking_description=f['seeking_description'],
+                   )
+        db.session.add(vn)
+        db.session.commit()
+        flash('Venue ' + request.form['name'] + ' was successfully listed!')
+    except AssertionError:
         db.session.rollback()
-        success = False
         print(sys.exc_info())
+        flash('The form is invalid.' + error_msg)
+    except SQLAlchemyError:
+        db.session.rollback()
+        print(sys.exc_info())
+        flash('A database error occurred. Venue ' + request.form['name'] + ' could not be listed.')
     finally:
         db.session.close()
-
-    if success:
-        flash('Venue ' + request.form['name'] + ' was successfully listed!')
-    else:
-        flash('An error occurred. Venue ' + request.form['name'] + ' could not be listed.' + error_msg)
-    # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
     return render_template('pages/home.html')
 
-# Works with problems.
+
 @rt.route('/venues/<venue_id>', methods=['DELETE'])
 def delete_venue(venue_id):
     venue_id = int(venue_id)
-    success = True
     vn = Venue.query.get(venue_id)
     name = vn.name if vn is not None else ''
     try:
         db.session.delete(vn)
         db.session.commit()
-    except:
+        flash('Venue ' + name + ' was successfully deleted!')
+    except SQLAlchemyError:
         db.session.rollback()
-        success = False
+        print(sys.exc_info())
+        flash('A database error occurred. This venue could not be deleted.')
     finally:
         db.session.close()
-
-    # FIXME This does not work!
-    if success:
-        flash('Venue ' + name + ' was successfully deleted!')
-    else:
-        flash('An error occurred. This venue could not be deleted.')
 
     return render_template('pages/home.html')
 
@@ -174,40 +168,40 @@ def edit_venue(venue_id):
 # Works Well
 @rt.route('/venues/<int:venue_id>/edit', methods=['POST'])
 def edit_venue_submission(venue_id):
-    success = True
+
     error_msg = ''
 
     try:
         f = request.form
         rf = VenueForm(request.form)
         if not rf.validate():
-            success = False
             for key, val in rf.errors.items():
                 error_msg += key + ": " + ';'.join(val)
-        else:
-            vn = Venue.query.get(venue_id)
-            vn.name = f["name"]
-            vn.city = f["city"]
-            vn.state = f["state"]
-            vn.address = f["address"]
-            vn.phone = f["phone"]
-            vn.image_link = f["image_link"]
-            vn.facebook_link = f["facebook_link"]
-            g_ids = [int(i) for i in f.getlist('genres')]
-            vn.website = f['website']
-            vn.seeking_talent = "seeking_talent" in f
-            vn.seeking_description = f["seeking_description"]
-            vn.genres = db.session.query(Genre).filter(Genre.id.in_(g_ids)).all()
-            db.session.commit()
-    except:
-        success = False
+        assert rf.validate()
+        vn = Venue.query.get(venue_id)
+        vn.name = f["name"]
+        vn.city = f["city"]
+        vn.state = f["state"]
+        vn.address = f["address"]
+        vn.phone = f["phone"]
+        vn.image_link = f["image_link"]
+        vn.facebook_link = f["facebook_link"]
+        g_ids = [int(i) for i in f.getlist('genres')]
+        vn.website = f['website']
+        vn.seeking_talent = "seeking_talent" in f
+        vn.seeking_description = f["seeking_description"]
+        vn.genres = db.session.query(Genre).filter(Genre.id.in_(g_ids)).all()
+        db.session.commit()
+        flash('Venue ' + request.form['name'] + ' was successfully updated!')
+    except AssertionError:
         db.session.rollback()
+        print(sys.exc_info())
+        flash('The form is invalid.' + error_msg)
+    except SQLAlchemyError:
+        db.session.rollback()
+        print(sys.exc_info())
+        flash('A database error occurred. This venue could not be updated.')
     finally:
         db.session.close()
-
-    if success:
-        flash('Venue ' + request.form['name'] + ' was successfully updated!')
-    else:
-        flash('An error occurred. Venue ' + request.form['name'] + ' could not be updated.'+error_msg)
 
     return redirect(url_for('rt.show_venue', venue_id=venue_id))

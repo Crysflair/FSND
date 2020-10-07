@@ -1,10 +1,13 @@
 import datetime
+import sys
 
 from flask import render_template, request, flash, make_response, jsonify, redirect, url_for
+from sqlalchemy.exc import SQLAlchemyError
+
 from models import Artist, Genre, Venue, Show
-from shared import db, genre_name
+from shared import db
 from forms import ArtistForm
-from . import divide_shows, num_upcoming_shows, rt
+from . import num_upcoming_shows, rt
 
 
 
@@ -73,24 +76,14 @@ def delete_artists(artist_id):
     try:
         db.session.delete(at)
         db.session.commit()
+        flash('Artist ' + name + ' was successfully deleted!')
     except:
         db.session.rollback()
-        success = False
+        print(sys.exc_info())
+        flash('A database error occurred.This artist could not be deleted.')
     finally:
         db.session.close()
-
-    # FIXME This does not work!
-    if success:
-        flash('Artist ' + name + ' was successfully deleted!')
-        #res = make_response(jsonify({}), 204)
-        #return res
-        return render_template('pages/home.html')
-    else:
-        flash('An error occurred. This artist could not be deleted.')
-        res = make_response(jsonify({"error": "Fail to delete"}), 400)
-        return res
-
-
+    return render_template('pages/home.html')
 
 
 #  Update
@@ -127,47 +120,46 @@ def edit_artist(artist_id):
 # Works Well!
 @rt.route('/artists/<int:artist_id>/edit', methods=['POST'])
 def edit_artist_submission(artist_id):
-    success = True
     error_msg = ''
     try:
         f = request.form
         af = ArtistForm(f)
         if not af.validate():
-            success = False
             for key,val in af.errors.items():
                 error_msg += key + ": " + ';'.join(val)
-        else:
-            at = Artist.query.get(artist_id)
-            at.name = f["name"]
-            at.city = f["city"]
-            at.state = f["state"]
-            at.phone = f["phone"]
-            at.facebook_link = f["facebook_link"]
-            at.website = f["website"]
-            at.image_link = f["image_link"]
-            at.seeking_venue = bool('seeking_venue' in f)
-            at.seeking_description = f['seeking_description']
-            g_ids = [int(i) for i in f.getlist('genres')]
-            at.genres = db.session.query(Genre).filter(Genre.id.in_(g_ids)).all()
-            db.session.commit()
-    except:
-        success = False
+        assert af.validate()
+        at = Artist.query.get(artist_id)
+        at.name = f["name"]
+        at.city = f["city"]
+        at.state = f["state"]
+        at.phone = f["phone"]
+        at.facebook_link = f["facebook_link"]
+        at.website = f["website"]
+        at.image_link = f["image_link"]
+        at.seeking_venue = bool('seeking_venue' in f)
+        at.seeking_description = f['seeking_description']
+        g_ids = [int(i) for i in f.getlist('genres')]
+        at.genres = db.session.query(Genre).filter(Genre.id.in_(g_ids)).all()
+        db.session.commit()
+    except AssertionError:
         db.session.rollback()
+        print(sys.exc_info())
+        flash('The form is invalid.' + error_msg)
+    except SQLAlchemyError:
+        db.session.rollback()
+        print(sys.exc_info())
+        flash('A database error occurred. This artist could not be updated.')
     finally:
         db.session.close()
 
-    if success:
-        flash('Artist ' + request.form['name'] + ' was successfully updated!')
-    else:
-        flash('An error occurred. Artist' + request.form['name'] + ' could not be updated.' + error_msg)
-
     return redirect(url_for('rt.show_artist', artist_id=artist_id))
 
-# Works Well!
+
 @rt.route('/artists/create', methods=['GET'])
 def create_artist_form():
     form = ArtistForm()
     return render_template('forms/new_artist.html', form=form)
+
 
 @rt.route('/artists/create', methods=['POST'])
 def create_artist_submission():
@@ -181,26 +173,23 @@ def create_artist_submission():
             success = False
             for key, val in af.errors.items():
                 error_msg += key + ": " + ';'.join(val)
-        else:
-            g_ids = [int(i) for i in f.getlist('genres')]
-            at = Artist(name=f["name"], city=f['city'], state=f['state'],
-                        phone=f['phone'], facebook_link=f['facebook_link'],
-                        genres=db.session.query(Genre).filter(Genre.id.in_(g_ids)).all(),
-                        image_link=f['image_link'], website=f['website'],
-                        seeking_venue=('seeking_venue' in f), seeking_description=f['seeking_description'],
-                        )
-            db.session.add(at)
-            db.session.commit()
-    except:
+        assert af.validate()
+        g_ids = [int(i) for i in f.getlist('genres')]
+        at = Artist(name=f["name"], city=f['city'], state=f['state'],
+                    phone=f['phone'], facebook_link=f['facebook_link'],
+                    genres=db.session.query(Genre).filter(Genre.id.in_(g_ids)).all(),
+                    image_link=f['image_link'], website=f['website'],
+                    seeking_venue=('seeking_venue' in f), seeking_description=f['seeking_description'],
+                    )
+    except AssertionError:
         db.session.rollback()
-        success = False
+        print(sys.exc_info())
+        flash('The form is invalid.' + error_msg)
+    except SQLAlchemyError:
+        db.session.rollback()
+        print(sys.exc_info())
+        flash('A database error occurred. Artist ' + request.form['name'] + ' could not be listed.')
     finally:
         db.session.close()
-
-    if success:
-        flash('Artist ' + request.form['name'] + ' was successfully listed!')
-    else:
-        flash('An error occurred. Artist ' + request.form['name'] + ' could not be listed.'+error_msg)
-
     return render_template('pages/home.html')
 
