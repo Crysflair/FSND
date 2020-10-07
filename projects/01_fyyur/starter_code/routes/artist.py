@@ -1,6 +1,6 @@
 
 from flask import render_template, request, flash, make_response, jsonify, redirect, url_for
-from models import Artist, Genre
+from models import Artist, Genre, Venue, Show
 from shared import db, genre_name
 from forms import ArtistForm
 from . import divide_shows, num_upcoming_shows, rt
@@ -37,18 +37,23 @@ def search_artists():
 def show_artist(artist_id):
     at = Artist.query.get(artist_id)
     past, upcoming = divide_shows(at.shows)
-    past_shows = [{
-        "venue_id": show.venue.id,
-        "venue_name": show.venue.name,
-        "venue_image_link": show.venue.image_link,
-        "start_time": show.start_time.isoformat(),
-    } for show in past]
+
     upcoming_shows = [{
         "venue_id": show.venue.id,
         "venue_name": show.venue.name,
         "venue_image_link": show.venue.image_link,
         "start_time": show.start_time.isoformat(),
     } for show in upcoming]
+
+    # filling out the Venues page with a “Past Performances” section
+    past_shows = [{
+        "venue_id": show.venue_id,
+        "venue_name": db.session.query(Venue).join(Show, show.venue_id==Venue.id).all()[0].name,
+        "venue_image_link": db.session.query(Venue).join(Show).filter(show.venue_id==Venue.id).all()[0].image_link,
+        "start_time": show.start_time.isoformat(),
+    } for show in past]
+
+
     data = {
         "id": at.id,
         "name": at.name,

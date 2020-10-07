@@ -1,5 +1,5 @@
 from flask import render_template, request, flash, redirect, url_for, Blueprint
-from models import Venue, Genre
+from models import Venue, Genre, Show, Artist
 from forms import VenueForm
 from shared import db, genre_name
 from . import num_upcoming_shows, divide_shows, rt
@@ -42,18 +42,22 @@ def search_venues():
 def show_venue(venue_id):
     vn = Venue.query.get(venue_id)
     past, upcoming = divide_shows(vn.shows)
+
+    # Method 1: using ORM relation
     past_shows = [{
         "artist_id": show.artist.id,
         "artist_name": show.artist.name,
         "artist_image_link": show.artist.image_link,
         "start_time": show.start_time.isoformat(),
     } for show in past]
+    # Method 2: using JOIN statement
     upcoming_shows = [{
-        "artist_id": show.artist.id,
-        "artist_name": show.artist.name,
-        "artist_image_link": show.artist.image_link,
+        "artist_id": show.artist_id,
+        "artist_name": db.session.query(Artist).join(Show, show.artist_id==Artist.id).all()[0].name,
+        "artist_image_link": db.session.query(Artist).join(Show, show.artist_id==Artist.id).all()[0].image_link,
         "start_time": show.start_time.isoformat()
     } for show in upcoming]
+
     data = {
         "id": vn.id,
         "name": vn.name,
