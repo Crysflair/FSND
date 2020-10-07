@@ -1,6 +1,12 @@
 from datetime import datetime
 from flask_wtf import FlaskForm
-from wtforms import StringField, SelectField, SelectMultipleField, DateTimeField, BooleanField, TextAreaField
+from wtforms import (
+    StringField,
+    SelectField, SelectMultipleField,
+    DateTimeField,
+    BooleanField,
+    TextAreaField
+)
 from wtforms.validators import DataRequired, AnyOf, URL, Regexp, ValidationError, Optional
 from shared import genre_name, genre_choice
 

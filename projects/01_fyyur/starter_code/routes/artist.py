@@ -1,3 +1,4 @@
+import datetime
 
 from flask import render_template, request, flash, make_response, jsonify, redirect, url_for
 from models import Artist, Genre, Venue, Show
@@ -36,7 +37,9 @@ def search_artists():
 @rt.route('/artists/<int:artist_id>')
 def show_artist(artist_id):
     at = Artist.query.get(artist_id)
-    past, upcoming = divide_shows(at.shows)
+    show_query = db.session.query(Show).join(Venue).filter(Show.artist_id == artist_id)
+    upcoming = show_query.filter(Show.start_time >= datetime.datetime.now()).all()
+    past = show_query.filter(Show.start_time < datetime.datetime.now()).all()
 
     upcoming_shows = [{
         "venue_id": show.venue.id,
@@ -53,24 +56,12 @@ def show_artist(artist_id):
         "start_time": show.start_time.isoformat(),
     } for show in past]
 
+    data = at.artist_to_dictionary()
+    data['past_shows'] = past_shows
+    data['past_shows_count'] = len(past_shows)
+    data['upcoming_shows'] = upcoming_shows
+    data['upcoming_shows_count'] = len(upcoming_shows)
 
-    data = {
-        "id": at.id,
-        "name": at.name,
-        "genres": [genre_name[g.id] for g in at.genres],
-        "city": at.city,
-        "state": at.state,
-        "phone": at.phone,
-        "website": at.website,
-        "facebook_link": at.facebook_link,
-        "seeking_venue": at.seeking_venue,
-        "seeking_description": at.seeking_description,
-        "image_link": at.image_link,
-        "past_shows": past_shows,
-        "upcoming_shows": upcoming_shows,
-        "past_shows_count": len(past_shows),
-        "upcoming_shows_count": len(upcoming_shows),
-    }
     return render_template('pages/show_artist.html', artist=data)
 
 

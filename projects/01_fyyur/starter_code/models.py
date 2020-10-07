@@ -1,6 +1,5 @@
 from shared import db
 
-
 venue_genre = db.Table(
     'venue_genre',
     db.Column('venue_id', db.Integer, db.ForeignKey('venues.id'), primary_key=True),
@@ -34,6 +33,24 @@ class Venue(db.Model):
     def __repr__(self):
         return f"<Venue id={self.id} name={self.name}>"
 
+    def venue_to_dictionary(self):
+        data = {
+            "id": self.id,
+            "name": self.name,
+            "address": self.address,
+            "city": self.city,
+            "state": self.state,
+            "phone": self.phone,
+            "website": self.website,
+            "facebook_link": self.facebook_link,
+            "seeking_talent": self.seeking_talent,
+            "seeking_description": self.seeking_description,
+            "image_link": self.image_link,
+            "genres": [g.description for g in sorted(self.genres, key=lambda a: a.id)]
+        }
+        return data
+
+
 
 class Artist(db.Model):
     __tablename__ = 'artists'
@@ -53,6 +70,22 @@ class Artist(db.Model):
 
     def __repr__(self):
         return f"<Artist id={self.id} name={self.name}>"
+
+    def artist_to_dictionary(self):
+        data = {
+            "id": self.id,
+            "name": self.name,
+            "city": self.city,
+            "state": self.state,
+            "phone": self.phone,
+            "website": self.website,
+            "facebook_link": self.facebook_link,
+            "seeking_venue": self.seeking_venue,
+            "seeking_description": self.seeking_description,
+            "image_link": self.image_link,
+            "genres": [g.description for g in sorted(self.genres, key=lambda a: a.id)]
+        }
+        return data
 
 
 class Genre(db.Model):

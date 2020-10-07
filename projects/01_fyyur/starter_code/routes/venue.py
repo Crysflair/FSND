@@ -1,4 +1,7 @@
-from flask import render_template, request, flash, redirect, url_for, Blueprint
+import datetime
+import sys
+
+from flask import render_template, request, flash, redirect, url_for
 from models import Venue, Genre, Show, Artist
 from forms import VenueForm
 from shared import db, genre_name
@@ -23,9 +26,9 @@ def venues():
 @rt.route('/venues/search', methods=['POST'])
 def search_venues():
     # case-insensitive search
-    tag = request.form['search_term']   # not sure how is the key defined.
+    tag = request.form['search_term']
     search = "%{}%".format(tag)
-    result = Venue.query.filter(Venue.name.ilike(search)).all()
+    result = Venue.query.filter(Venue.name.ilike(search)).all()   # ilike: case insensitive search
     response = {
         "count": len(result),
         "data": [{
@@ -41,7 +44,9 @@ def search_venues():
 @rt.route('/venues/<int:venue_id>', methods=['GET'])
 def show_venue(venue_id):
     vn = Venue.query.get(venue_id)
-    past, upcoming = divide_shows(vn.shows)
+    show_query = db.session.query(Show).join(Venue).filter(Show.venue_id == venue_id)
+    upcoming = show_query.filter(Show.start_time >= datetime.datetime.now()).all()
+    past = show_query.filter(Show.start_time < datetime.datetime.now()).all()
 
     # Method 1: using ORM relation
     past_shows = [{
@@ -58,24 +63,12 @@ def show_venue(venue_id):
         "start_time": show.start_time.isoformat()
     } for show in upcoming]
 
-    data = {
-        "id": vn.id,
-        "name": vn.name,
-        "genres": [genre_name[g.id] for g in vn.genres],
-        "address": vn.address,
-        "city": vn.city,
-        "state": vn.state,
-        "phone": vn.phone,
-        "website": vn.website,
-        "facebook_link": vn.facebook_link,
-        "seeking_talent": vn.seeking_talent,
-        "seeking_description": vn.seeking_description,
-        "image_link": vn.image_link,
-        "past_shows": past_shows,
-        "upcoming_shows": upcoming_shows,
-        "past_shows_count": len(past_shows),
-        "upcoming_shows_count": len(upcoming_shows),
-    }
+    data = vn.venue_to_dictionary()
+    data['past_shows'] = past_shows
+    data['past_shows_count'] = len(past_shows)
+    data['upcoming_shows'] = upcoming_shows
+    data['upcoming_shows_count'] = len(upcoming_shows)
+
     return render_template('pages/show_venue.html', venue=data)
 
 
@@ -113,6 +106,7 @@ def create_venue_submission():
     except:
         db.session.rollback()
         success = False
+        print(sys.exc_info())
     finally:
         db.session.close()
 
