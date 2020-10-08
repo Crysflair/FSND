@@ -70,12 +70,26 @@ state_choices = [
 # Define Forms
 
 
+
+def ifArtistExists(form, field):
+    from models import Artist
+    if Artist.query.get(field.data) is None:
+        raise ValidationError('Artist not listed in our database')
+
+def ifVenueExists(form, field):
+    from models import Venue
+    if Venue.query.get(field.data) is None:
+        raise ValidationError('Artist not listed in our database')
+
+
 class ShowForm(FlaskForm):
     artist_id = StringField(
-        'artist_id'
+        'artist_id',
+        validators=[DataRequired(), ifArtistExists]
     )
     venue_id = StringField(
-        'venue_id'
+        'venue_id',
+        validators=[DataRequired(), ifVenueExists]
     )
     start_time = DateTimeField(
         'start_time',
@@ -108,7 +122,6 @@ class VenueForm(FlaskForm):
         'image_link', validators=[DataRequired(), URL()]
     )
     genres = SelectMultipleField(
-        # TODO implement enum restriction (WHAT IS IT?)
         'genres', validators=[DataRequired()],
         choices=genre_choice, coerce=int
     )
@@ -120,7 +133,7 @@ class VenueForm(FlaskForm):
     )
 
     seeking_talent = BooleanField(
-        'seeking_talent', default=False   # validators=[DataRequired()]
+        'seeking_talent', default=False   # validators=[DataRequired()] This causes 'False' value invalid.
     )
     seeking_description = TextAreaField(
         'seeking_description'
