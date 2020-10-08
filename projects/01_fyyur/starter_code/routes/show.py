@@ -58,7 +58,7 @@ def create_show_submission():
                   )
         db.session.add(sh)
         db.session.commit()
-
+        flash('The show is successfully added!')
     except AssertionError:
         db.session.rollback()
         print(sys.exc_info())

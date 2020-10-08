@@ -2,15 +2,23 @@ from shared import db
 
 venue_genre = db.Table(
     'venue_genre',
-    db.Column('venue_id', db.Integer, db.ForeignKey('venues.id'), primary_key=True),
-    db.Column('genre_id', db.Integer, db.ForeignKey('genres.id'), primary_key=True),
+    db.Column('venue_id', db.Integer, db.ForeignKey('venues.id', ondelete='CASCADE'), primary_key=True),
+    db.Column('genre_id', db.Integer, db.ForeignKey('genres.id', ondelete='CASCADE'), primary_key=True),
 )
 
 artist_genre = db.Table(
     'artist_genre',
-    db.Column('artist_id', db.Integer, db.ForeignKey('artists.id'), primary_key=True),
-    db.Column('genre_id', db.Integer, db.ForeignKey('genres.id'), primary_key=True),
+    db.Column('artist_id', db.Integer, db.ForeignKey('artists.id', ondelete='CASCADE'), primary_key=True),
+    db.Column('genre_id', db.Integer, db.ForeignKey('genres.id', ondelete='CASCADE'), primary_key=True),
 )
+
+class Genre(db.Model):
+    __tablename__ = 'genres'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    description = db.Column(db.String(100))
+
+    def __repr__(self):
+        return f"<Genre id={self.id} description={self.description}>"
 
 
 class Venue(db.Model):
@@ -27,7 +35,7 @@ class Venue(db.Model):
     website = db.Column(db.String(120))
     seeking_talent = db.Column(db.Boolean, default=False)
     seeking_description = db.Column(db.String())
-    genres = db.relationship('Genre', secondary=venue_genre, backref='venues', cascade=['all'], lazy=True)
+    genres = db.relationship('Genre', secondary=venue_genre, backref='venues', lazy=True)
     shows = db.relationship('Show', backref='venue', cascade=['all'], lazy=True)
 
     def __repr__(self):
@@ -65,7 +73,7 @@ class Artist(db.Model):
     website = db.Column(db.String(120))
     seeking_venue = db.Column(db.Boolean, default=False)
     seeking_description = db.Column(db.String())
-    genres = db.relationship('Genre', secondary=artist_genre, backref='artists', cascade=['all'], lazy=True)
+    genres = db.relationship('Genre', secondary=artist_genre, backref='artists', lazy=True)
     shows = db.relationship('Show', backref='artist', cascade=['all'], lazy=True)
 
     def __repr__(self):
@@ -88,19 +96,11 @@ class Artist(db.Model):
         return data
 
 
-class Genre(db.Model):
-    __tablename__ = 'genres'
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    description = db.Column(db.String(100))
-
-    def __repr__(self):
-        return f"<Genre id={self.id} description={self.description}>"
-
 
 class Show(db.Model):
     __tablename__ = 'shows'
-    venue_id = db.Column(db.Integer, db.ForeignKey('venues.id'), primary_key=True)
-    artist_id = db.Column(db.Integer, db.ForeignKey('artists.id'), primary_key=True)
+    venue_id = db.Column(db.Integer, db.ForeignKey('venues.id', ondelete='CASCADE'), primary_key=True)
+    artist_id = db.Column(db.Integer, db.ForeignKey('artists.id', ondelete='CASCADE'), primary_key=True)
     start_time = db.Column(db.DateTime, primary_key=True)
 
     def __repr__(self):

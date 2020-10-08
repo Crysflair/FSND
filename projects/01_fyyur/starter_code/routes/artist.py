@@ -170,7 +170,6 @@ def create_artist_submission():
         f = request.form
         af = ArtistForm(request.form)
         if not af.validate():
-            success = False
             for key, val in af.errors.items():
                 error_msg += key + ": " + ';'.join(val)
         assert af.validate()
@@ -181,6 +180,9 @@ def create_artist_submission():
                     image_link=f['image_link'], website=f['website'],
                     seeking_venue=('seeking_venue' in f), seeking_description=f['seeking_description'],
                     )
+        db.session.add(at)
+        db.session.commit()
+        flash('Artist ' + request.form['name'] + ' was successfully listed!')
     except AssertionError:
         db.session.rollback()
         print(sys.exc_info())
