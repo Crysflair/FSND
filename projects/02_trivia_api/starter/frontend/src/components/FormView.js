@@ -2,25 +2,25 @@ import React, { Component } from 'react';
 import $ from 'jquery';
 
 import '../stylesheets/FormView.css';
+import Question from "./Question";
 
 class FormView extends Component {
   constructor(props){
     super();
-    this.state = {
+    this.state = {  // default setting for a new question.
       question: "",
       answer: "",
       difficulty: 1,
       category: 1,
-      categories: {}
+      categories: []  // use `componentDidMount` to load category names.
     }
   }
 
   componentDidMount(){
     $.ajax({
-      url: `/categories`, //TODO: update request URL
-      type: "GET",
-      success: (result) => {
-        this.setState({ categories: result.categories })
+      url: `/categories`,
+      success: (result) => {  // the result should be category names ordered by id.
+        this.setState({ categories: result.categories });
         return;
       },
       error: (error) => {
@@ -34,7 +34,7 @@ class FormView extends Component {
   submitQuestion = (event) => {
     event.preventDefault();
     $.ajax({
-      url: '/questions', //TODO: update request URL
+      url: '/questions',
       type: "POST",
       dataType: 'json',
       contentType: 'application/json',
@@ -50,10 +50,11 @@ class FormView extends Component {
       crossDomain: true,
       success: (result) => {
         document.getElementById("add-question-form").reset();
+        alert('The question has been added successfully!');
         return;
       },
       error: (error) => {
-        alert('Unable to add question. Please try your request again')
+        alert('Unable to add question. Please try your request again');
         return;
       }
     })
@@ -89,11 +90,14 @@ class FormView extends Component {
           <label>
             Category
             <select name="category" onChange={this.handleChange}>
-              {Object.keys(this.state.categories).map(id => {
-                  return (
-                    <option key={id} value={id}>{this.state.categories[id]}</option>
-                  )
-                })}
+              {this.state.categories.map((ca) => (
+                  <option
+                      key={ca.id}
+                      value={ca.id}
+                  >
+                    {ca.type}
+                  </option>
+              ))}
             </select>
           </label>
           <input type="submit" className="button" value="Submit" />

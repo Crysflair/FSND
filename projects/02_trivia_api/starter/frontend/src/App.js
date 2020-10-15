@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import {
   BrowserRouter as Router,
-  Route,
+  Route,  //determine what to show according to the URL
   Switch
 } from 'react-router-dom'
 

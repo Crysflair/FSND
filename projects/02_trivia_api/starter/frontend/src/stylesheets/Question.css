@@ -62,7 +62,13 @@ span.page-num {
   font-size: 16px;
 }
 
+
+
 span.page-num.active {
+  color: blue;
+}
+
+li.category.active {
   color: blue;
 }
 
