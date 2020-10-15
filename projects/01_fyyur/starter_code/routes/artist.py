@@ -18,6 +18,7 @@ def artists():
         "id": a.id,
         "name": a.name,
     } for a in Artist.query.all()]
+
     return render_template('pages/artists.html', artists=data)
 
 # Works well!

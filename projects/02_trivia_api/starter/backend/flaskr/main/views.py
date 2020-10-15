@@ -5,10 +5,6 @@ from flask_cors import cross_origin
 from . import main as app
 
 
-@app.route('/')
-def index():
-    return 'Hello Trivia!'
-
 
 @app.route('/questions', methods=['GET'])
 def question_list():
@@ -28,13 +24,16 @@ def question_list():
     query = Question.query
 
     try:
-        page = int(f['page'])
-        if f['current_category'] != 'null':
+        if 'page' in f and f['page']:
+            page = int(f['page'])
+        else:
+            page = 1
+        if 'current_category' in f and f['current_category'] != 'null':
             current_category = int(f['current_category'])
             assert current_category > 0
         else:
             current_category = None
-        if f['search_term']:
+        if 'search_term' in f and f['search_term']:
             search = "%{}%".format(f['search_term'])
         else:
             search = ''
@@ -68,7 +67,7 @@ def question_list():
 @app.route('/categories', methods=['GET'])
 def category_list():
     """
-    :return: `categories`: dictionary with
+    :return: `categories`
     """
     categories = Category.query.order_by('id').all()
     return jsonify({
