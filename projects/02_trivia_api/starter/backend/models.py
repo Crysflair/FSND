@@ -1,10 +1,9 @@
-import os
-from sqlalchemy import Column, Integer, create_engine
 from flask_sqlalchemy import SQLAlchemy
-import json
+from sqlalchemy import Column, Integer
 
 database_name = "trivia"
-database_path = "postgres://postgres@{}/{}".format('localhost:5432', database_name)
+database_path = "postgres://postgres@{}/{}".format(
+    'localhost:5432', database_name)
 db = SQLAlchemy()
 
 
@@ -37,8 +36,10 @@ class Question(db.Model):
     def __init__(self, question, answer, category, difficulty):
         if not isinstance(question, str) or not isinstance(answer, str):
             raise ValueError("question and answer should be string")
-        if not isinstance(category, int) or not isinstance(difficulty, int):
-            raise ValueError("category and difficulty should be int")
+
+        category = int(category)
+        difficulty = int(difficulty)
+
         self.question = question
         self.answer = answer
         self.category = category

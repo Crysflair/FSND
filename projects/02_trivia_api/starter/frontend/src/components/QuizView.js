@@ -9,7 +9,7 @@ class QuizView extends Component {
   constructor(props){
     super();
     this.state = {
-        category: -1,             // selected category, -1 for all
+        category: null,             // selected category, -1 for all
         previousQuestions: [],      // ids of previous questions.
         showAnswer: false,
         categories: [],             // all categories
@@ -17,7 +17,8 @@ class QuizView extends Component {
         currentQuestion: null,
         guess: '',
         forceEnd: false,
-        questionPerPlay: 5,      // positive for total question per play, -1 for endless game. default 5
+        questionPerPlay: null,      // positive for total question per play, -1 for endless game. default 5
+        running: false
     }
   }
 
@@ -59,10 +60,11 @@ class QuizView extends Component {
       crossDomain: true,
       success: (result) => {
         this.setState({
-          showAnswer: false,
-          currentQuestion: result.question,
-          guess: '',
-          forceEnd: !result.question
+            showAnswer: false,
+            currentQuestion: result.question,
+            guess: '',
+            forceEnd: !result.question,
+            running: true,
         });
       },
       error: (error) => {
@@ -102,7 +104,7 @@ class QuizView extends Component {
 
   restartGame = () => {
     this.setState({
-        category: -1,             // selected category
+        category: null,             // selected category
         previousQuestions: [],      // ids of previous questions.
         showAnswer: false,
         categories: [],             // all categories
@@ -110,7 +112,8 @@ class QuizView extends Component {
         currentQuestion: null,
         guess: '',
         forceEnd: false,
-        questionPerPlay: 5,
+        questionPerPlay: null,
+        running: false,
     })
   };
 
@@ -135,30 +138,39 @@ class QuizView extends Component {
                   <option value="10">10</option>
                   <option value="20">20</option>
                   <option value="50">50</option>
-                  <option value="-1">unlimited</option>
                 </select>
                 <br/><br/>
-              <input type="button" className="button" value="Start" onClick={this.getNextQuestion} />
+              <input type="button" className="button" value="Start" onClick={
+                  ()=>{
+                      if (this.state.category == null){ //default setting
+                          this.setState({category: -1})
+                      }
+                      if (this.state.questionPerPlay == null){
+                          this.setState({questionPerPlay: 5})
+                      }
+                      this.getNextQuestion();
+                  }} />
           </div>
       )
   }
 
   renderFinalScore(){
-    return(
-      <div className="quiz-play-holder">
+    return<div className="quiz-play-holder">
         <div className="final-header">
             Your Final Score is:{' '}
             {this.state.numCorrect} out of {this.state.previousQuestions.length}
         </div>
-        <div className="play-again button" onClick={this.restartGame}> Play Again? </div>
-      </div>
-    )
+        <div>
+        {`${this.state.previousQuestions.length < this.state.questionPerPlay ? 'Note: Trivia run out of questions! The game is forced to end.' : ''}`}
+        </div>
+        <div className="play-again button" onClick={this.restartGame}> Play Again?</div>
+    </div>
   }
 
 
 
   renderPlay(){
-    return this.state.previousQuestions.length === this.state.questionPerPlay || this.state.forceEnd
+    return this.state.forceEnd || this.state.previousQuestions.length >= this.state.questionPerPlay
       ? this.renderFinalScore()
       : this.state.showAnswer
         ? this.renderCorrectAnswer()
@@ -175,7 +187,7 @@ class QuizView extends Component {
 
 
   render() {
-    return this.state.currentQuestion
+    return this.state.running
         ? this.renderPlay()
         : this.renderPrePlay()
   }

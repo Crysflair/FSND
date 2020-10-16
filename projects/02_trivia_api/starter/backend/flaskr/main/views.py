@@ -1,25 +1,13 @@
 from flask import request, jsonify, abort
-from models import Question, Category, db
-from flaskr import QUESTIONS_PER_PAGE
-from flask_cors import cross_origin
-from . import main as app
 
+from flaskr import QUESTIONS_PER_PAGE
+from models import Question, Category, db
+from . import main as app
 
 
 @app.route('/questions', methods=['GET'])
 def question_list():
-    """
-        The request should include params in url. questions are filtered by category, and the specific page
-        will be returned. QUESTIONS_PER_PAGE specifies how many questions a page bears.
-        `page`: integer. if invalid, return the first page.
-        `current_category`: 'null' for all categories, integer for a particular category ID.
-        `search_term`: a string to search in question descriptions if not empty.
-    :return: {
-        questions: { question, answer, category, difficulty }
-        total_questions: the number of all questions selected.
-        page: the actual returned page.
-        }
-    """
+
     f = request.values
     query = Question.query
 
@@ -49,10 +37,12 @@ def question_list():
 
         questions = query.all()
         total_questions = len(questions)
-        max_page = total_questions // QUESTIONS_PER_PAGE + (1 if total_questions % QUESTIONS_PER_PAGE > 0 else 0)
+        max_page = total_questions // QUESTIONS_PER_PAGE + \
+            (1 if total_questions % QUESTIONS_PER_PAGE > 0 else 0)
         if page > max_page or page < 1:
             page = 1
-        questions = questions[(page-1) * QUESTIONS_PER_PAGE: page * QUESTIONS_PER_PAGE]
+        questions = questions[(page - 1) *
+                              QUESTIONS_PER_PAGE: page * QUESTIONS_PER_PAGE]
 
         return jsonify({
             'questions': [q.format() for q in questions],
@@ -82,14 +72,13 @@ def question_delete(id):
     if to_delete is None:
         abort(404)
     try:
-        to_delete.delete()      # delete and commit
+        to_delete.delete()  # delete and commit
         return jsonify({
             'message': 'OK'
         }), 200
     except Exception:
         db.session.rollback()
         abort(500)
-
 
 
 @app.route('/questions', methods=['POST'])
@@ -127,6 +116,6 @@ def quiz_get_next():
 
     return jsonify({
         'message': 'OK',
-        'question': None if not quiz_list else random.choice(quiz_list).format(),
+        'question': None if not quiz_list
+        else random.choice(quiz_list).format(),
     }), 200
-

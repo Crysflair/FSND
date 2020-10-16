@@ -37,4 +37,3 @@ npm start
 
 A user plays the game by visiting '/play'. They can choose one specific category (or all) to play, and the number of quizzes before start playing the game.
 If there are fewer questions in a category (or all) than the user chosen quiz number, the game will end. 
-The user can also chose the `unlimited` mode, where the game never ends until all questions are exhausted.
